@@ -19,8 +19,7 @@ func TestParseContent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	result := parseContent(input)
+	result, err := parseContent(input, "")
 
 	expected, err := os.ReadFile(goldenfile)
 	if err != nil {
@@ -37,7 +36,7 @@ func TestParseContent(t *testing.T) {
 
 func TestRun(t *testing.T) {
 	var mockStdOut bytes.Buffer
-	if err := run(inputfile, &mockStdOut); err != nil {
+	if err := run(inputfile, "", &mockStdOut, true); err != nil {
 		t.Fatal(err)
 	}
 	resultFile := strings.TrimSpace(mockStdOut.String())
