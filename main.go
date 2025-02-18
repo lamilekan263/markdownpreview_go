@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
@@ -44,18 +43,28 @@ func main() {
 }
 
 func run(filename string) error {
-	file, err := os.ReadFile(filename)
+	input, err := os.ReadFile(filename)
 
 	if err != nil {
-		fmt.Fprintln(os.Stderr)
+		return err
 	}
-	parse := parsedHtml(file)
 
-	outputName := fmt.Sprintf("%s.html", filepath.Base(filename))
+	parse := parseContent(input)
+
+	temp, err := os.CreateTemp("", "mdp*.html")
+
+	if err != nil {
+		return err
+	}
+
+	if err := temp.Close(); err != nil {
+		return err
+	}
+	outputName := temp.Name()
 	return saveToHtml(outputName, parse)
 }
 
-func parsedHtml(input []byte) []byte {
+func parseContent(input []byte) []byte {
 	output := blackfriday.Run(input)
 
 	html := bluemonday.UGCPolicy().SanitizeBytes(output)
@@ -63,7 +72,7 @@ func parsedHtml(input []byte) []byte {
 	var buffer bytes.Buffer
 
 	buffer.WriteString(header)
-	buffer.Write([]byte(html))
+	buffer.Write(html)
 	buffer.WriteString(footer)
 	return buffer.Bytes()
 }
